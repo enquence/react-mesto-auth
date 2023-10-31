@@ -14,6 +14,7 @@ import ConfirmPopup from "./ConfirmPopup";
 import Login from "./Login";
 import Register from "./Register";
 import InfoToolTip from "./InfoToolTip";
+import ProtectedRoute from "./ProtectedRoute";
 
 function App() {
 
@@ -133,46 +134,52 @@ function App() {
   }
 
   useEffect(() => {
-      if (loggedIn && localStorage.getItem('token')) {
+      if (localStorage.getItem('token')) {
         const token = localStorage.getItem('token')
         let userEmail = '';
         authApi.checkToken(token)
           .then((res) => {
-            setLoggedIn(res.ok)
             if (res.ok) return res.json()
             throw new Error('Ошибка при проверке токена в локальном хранилище')
           })
-          .then(res => userEmail = res.data.email)
-          .then(() => api.getUserInfo())
-          .then((user) => setCurrentUser({...currentUser, ...user, email: userEmail}))
-          .then(() => api.getAllCards())
-          .then((data) => setCards(data.map(card => normalizeCard(card))))
-          .catch((err) => console.log(err))
+          .then(res => setCurrentUser({...currentUser, email: res.data.email}))
+          .then(() => setLoggedIn(true))
+          .then(() => navigate('/', {replace: true}))
+          .catch(err => console.log(err))
       }
     }
     ,
-    [loggedIn]
+    []
   )
+
+  useEffect(() => {
+    if (loggedIn) api.getUserInfo()
+      .then((user) => setCurrentUser({...currentUser, ...user}))
+      .then(() => api.getAllCards())
+      .then((data) => setCards(data.map(card => normalizeCard(card))))
+      .catch((err) => console.log(err))
+  }, [loggedIn])
 
   return (
     <CurrentUserContext.Provider value={currentUser}>
       <Header loggedIn={loggedIn} onLogout={handleLogout}/>
       <Routes>
-        <Route path='/' element={
-          <Main
-            cards={cards}
-            onEditProfile={handleEditProfileClick}
-            onEditAvatar={handleEditAvatarClick}
-            onAddPlace={handleAddPlaceClick}
-            onCardClick={(card) => {
-              setSelectedCard(card)
-              window.addEventListener('keyup', handleClosePopupsOnEsc)
-            }}
-            onCardLike={handleCardLike}
-            onCardDelete={handleCardDelete}
-            onClose={closeAllPopups}
-          />
-        }/>
+        <Route path='/' element={<ProtectedRoute
+          element={Main}
+          cards={cards}
+          onEditProfile={handleEditProfileClick}
+          onEditAvatar={handleEditAvatarClick}
+          onAddPlace={handleAddPlaceClick}
+          onCardClick={(card) => {
+            setSelectedCard(card)
+            window.addEventListener('keyup', handleClosePopupsOnEsc)
+          }}
+          onCardLike={handleCardLike}
+          onCardDelete={handleCardDelete}
+          onClose={closeAllPopups}
+          loggedIn={loggedIn}
+        />}
+        />
         <Route path='/sign-in' element={<Login isLoading={isLoading} onSubmit={handleSignIn}/>}/>
         <Route path='/sign-up' element={<Register isLoading={isLoading} onSubmit={handleSignUp}/>}/>
       </Routes>
@@ -232,7 +239,9 @@ function App() {
         onClose={closeAllPopups}
       />
       <ImagePopup card={selectedCard} onClose={closeAllPopups}/>
-      {loggedIn && <Footer/>}
+      {
+        loggedIn && <Footer/>
+      }
     </CurrentUserContext.Provider>
   )
 }

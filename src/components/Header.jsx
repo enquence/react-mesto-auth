@@ -11,7 +11,7 @@ function Header({loggedIn, onLogout}) {
   return (
     <header className="header">
       <img className="header__logo" src={logo} alt="Логотип Место Россия"/>
-      {currentUser && <p className="header__user">{currentUser?.email}</p>}
+      {currentUser?.email && <p className="header__user">{currentUser?.email}</p>}
       {loggedIn && <button className="header__button" onClick={onLogout}>Выйти</button>}
       {location.pathname.includes('sign-in') && <Link to='/sign-up' className="header__button">Зарегистрироваться</Link>}
       {location.pathname.includes('sign-up') && <Link to='/sign-in' className="header__button">Войти</Link>}

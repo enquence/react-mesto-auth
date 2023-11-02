@@ -136,20 +136,21 @@ function App() {
   useEffect(() => {
       if (localStorage.getItem('token')) {
         const token = localStorage.getItem('token')
-        let userEmail = '';
         authApi.checkToken(token)
           .then((res) => {
             if (res.ok) return res.json()
             throw new Error('Ошибка при проверке токена в локальном хранилище')
           })
-          .then(res => setCurrentUser({...currentUser, email: res.data.email}))
+          .then(res => {
+            console.log(res.data.email)
+            setCurrentUser({email: res.data.email})
+          })
           .then(() => setLoggedIn(true))
           .then(() => navigate('/', {replace: true}))
           .catch(err => console.log(err))
       }
     }
-    ,
-    []
+    ,[]
   )
 
   useEffect(() => {

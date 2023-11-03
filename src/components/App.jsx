@@ -19,6 +19,7 @@ import ProtectedRoute from "./ProtectedRoute";
 function App() {
 
   const [currentUser, setCurrentUser] = useState({})
+  const [email, setEmail] = useState(null)
   const [cards, setCards] = useState([])
   const [selectedCard, setSelectedCard] = useState(null)
   const [isNotificationPopupOpen, setIsNotificationPopupOpen] = useState(false)
@@ -101,8 +102,8 @@ function App() {
         if (data.token) {
           setLoggedIn(true)
           localStorage.setItem('token', data.token);
+          checkTokenLocally()
           navigate('/', {replace: true})
-          return data;
         }
       })
       .catch((err) => console.log(err))
@@ -129,41 +130,39 @@ function App() {
   const handleLogout = () => {
     if (localStorage.getItem('token')) localStorage.removeItem('token')
     setLoggedIn(false)
-    setCurrentUser({})
+    setEmail(null)
     navigate('/sign-in')
   }
 
-  useEffect(() => {
-      if (localStorage.getItem('token')) {
-        const token = localStorage.getItem('token')
-        authApi.checkToken(token)
-          .then((res) => {
-            if (res.ok) return res.json()
-            throw new Error('Ошибка при проверке токена в локальном хранилище')
-          })
-          .then(res => {
-            console.log(res.data.email)
-            setCurrentUser({email: res.data.email})
-          })
-          .then(() => setLoggedIn(true))
-          .then(() => navigate('/', {replace: true}))
-          .catch(err => console.log(err))
-      }
+  const checkTokenLocally = () => {
+    if (localStorage.getItem('token')) {
+      const token = localStorage.getItem('token')
+      authApi.checkToken(token)
+        .then((res) => {
+          if (res.ok) return res.json()
+          throw new Error('Токен не прошел аутентификацию')
+        })
+        .then(res => {
+          setLoggedIn(true)
+          setEmail(res.data.email)
+          navigate('/', {replace: true})
+        })
+        .catch(err => console.log(err))
     }
-    ,[]
-  )
+  }
 
   useEffect(() => {
-    if (loggedIn) api.getUserInfo()
+    checkTokenLocally()
+    api.getUserInfo()
       .then((user) => setCurrentUser({...currentUser, ...user}))
       .then(() => api.getAllCards())
       .then((data) => setCards(data.map(card => normalizeCard(card))))
       .catch((err) => console.log(err))
-  }, [loggedIn])
+  }, [])
 
   return (
     <CurrentUserContext.Provider value={currentUser}>
-      <Header loggedIn={loggedIn} onLogout={handleLogout}/>
+      <Header loggedIn={loggedIn} email={email} onLogout={handleLogout}/>
       <Routes>
         <Route path='/' element={<ProtectedRoute
           element={Main}

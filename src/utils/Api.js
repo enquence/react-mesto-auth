@@ -68,16 +68,24 @@ class AuthApi {
     this._headers = headers
   }
 
+  _sendRequest(url, options) {
+    return fetch(url, options)
+      .then((resp) => {
+        if (resp.ok) return resp.json()
+        return Promise.reject(`Ошибка ${resp.statusCode}`);
+      })
+  }
+
   signUp(data) {
-    return fetch(`${this._url}/signup`, { method: 'POST', headers: this._headers, body: JSON.stringify(data) })
+    return this._sendRequest(`${this._url}/signup`, { method: 'POST', headers: this._headers, body: JSON.stringify(data) })
   }
 
   signIn(data) {
-    return fetch(`${this._url}/signin`, { method: 'POST', headers: this._headers, body: JSON.stringify(data) })
+    return this._sendRequest(`${this._url}/signin`, { method: 'POST', headers: this._headers, body: JSON.stringify(data) })
   }
 
   checkToken(token) {
-    return fetch(`${this._url}/users/me`, {
+    return this._sendRequest(`${this._url}/users/me`, {
       method: 'GET', headers: {...this._headers, 'Authorization': `Bearer ${token}`}
     })
   }

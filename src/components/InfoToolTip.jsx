@@ -1,15 +1,13 @@
 import React from 'react';
+import Popup from "./Popup";
 
 const InfoToolTip = ({notification, isOpen, onClose}) => {
 
   return (
-    <div className={`popup${isOpen ? ' popup_opened': ''}`} onMouseDown={onClose}>
-      <div className="popup__container" onMouseDown={(evt) => evt.stopPropagation()}>
-        <button className="popup__close-button" type="button" onClick={onClose}/>
-        <div className={`popup__pic_type_${notification.type} popup__pic`}/>
-        <h2 className="popup__text">{notification.text}</h2>
-      </div>
-    </div>
+    <Popup isOpen={isOpen} onClose={onClose}>
+      <div className={`popup__pic_type_${notification.type} popup__pic`}/>
+      <h2 className="popup__text">{notification.text}</h2>
+    </Popup>
   )
 };
 

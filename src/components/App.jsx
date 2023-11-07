@@ -54,7 +54,7 @@ function App() {
   const showNotificationPopup = ({type, text}) => {
     setNotification({type, text})
     setIsNotificationPopupOpen(true)
-    window.addEventListener('keyup', handleClosePopupsOnEsc)
+  //  window.addEventListener('keyup', handleClosePopupsOnEsc)
   }
 
   const closeAllPopups = () => {
@@ -64,7 +64,7 @@ function App() {
     setIsEditProfilePopupOpen(false)
     setIsNotificationPopupOpen(false)
     setSelectedCard(null)
-    window.removeEventListener('keyup', handleClosePopupsOnEsc)
+  //  window.removeEventListener('keyup', handleClosePopupsOnEsc)
   }
 
   const handleCardLike = (card, isLikedByUser) => {
@@ -75,7 +75,7 @@ function App() {
 
   const handleCardDelete = (cardId) => {
     setIsConfirmPopupOpen(true)
-    window.addEventListener('keyup', handleClosePopupsOnEsc)
+//    window.addEventListener('keyup', handleClosePopupsOnEsc)
     confirmAction.current = () => {
       setIsLoading(true)
       api.deleteCard(cardId)
@@ -91,13 +91,6 @@ function App() {
   const handleSignIn = (data) => {
     setIsLoading(true)
     authApi.signIn(data)
-      .then((res) => {
-        if (res.ok) return res.json()
-        else {
-          showNotificationPopup({type: 'cross', text: 'Что-то пошло не так! Попробуйте еще раз.'})
-          throw new Error('Ошибка при авторизации пользователя')
-        }
-      })
       .then((data) => {
         if (data.token) {
           setLoggedIn(true)
@@ -106,7 +99,7 @@ function App() {
           navigate('/', {replace: true})
         }
       })
-      .catch((err) => console.log(err))
+      .catch(() => showNotificationPopup({type: 'cross', text: 'Что-то пошло не так! Попробуйте еще раз.'}))
       .finally(() => setIsLoading(false))
   }
 
@@ -114,16 +107,11 @@ function App() {
     setIsLoading(true);
     authApi.signUp(data)
       .then((res) => {
-        if (res.ok) {
           showNotificationPopup({type: 'ok', text: 'Вы успешно зарегистрировались!'})
           navigate('/sign-in', {replace: true})
           return res
-        } else {
-          showNotificationPopup({type: 'cross', text: 'Что-то пошло не так! Попробуйте еще раз.'})
-          throw new Error('Ошибка при регистрации пользователя')
-        }
-      })
-      .catch((err) => console.log(err))
+        })
+      .catch(() => showNotificationPopup({type: 'cross', text: 'Что-то пошло не так! Попробуйте еще раз.'}))
       .finally(() => setIsLoading(false))
   }
 
@@ -138,10 +126,6 @@ function App() {
     if (localStorage.getItem('token')) {
       const token = localStorage.getItem('token')
       authApi.checkToken(token)
-        .then((res) => {
-          if (res.ok) return res.json()
-          throw new Error('Токен не прошел аутентификацию')
-        })
         .then(res => {
           setLoggedIn(true)
           setEmail(res.data.email)
@@ -164,21 +148,22 @@ function App() {
     <CurrentUserContext.Provider value={currentUser}>
       <Header loggedIn={loggedIn} email={email} onLogout={handleLogout}/>
       <Routes>
-        <Route path='/' element={<ProtectedRoute
-          element={Main}
-          cards={cards}
-          onEditProfile={handleEditProfileClick}
-          onEditAvatar={handleEditAvatarClick}
-          onAddPlace={handleAddPlaceClick}
-          onCardClick={(card) => {
-            setSelectedCard(card)
-            window.addEventListener('keyup', handleClosePopupsOnEsc)
-          }}
-          onCardLike={handleCardLike}
-          onCardDelete={handleCardDelete}
-          onClose={closeAllPopups}
-          loggedIn={loggedIn}
-        />}
+        <Route path='/'
+               element={<ProtectedRoute
+                 element={Main}
+                 cards={cards}
+                 onEditProfile={handleEditProfileClick}
+                 onEditAvatar={handleEditAvatarClick}
+                 onAddPlace={handleAddPlaceClick}
+                 onCardClick={(card) => {
+                   setSelectedCard(card)
+                   window.addEventListener('keyup', handleClosePopupsOnEsc)
+                 }}
+                 onCardLike={handleCardLike}
+                 onCardDelete={handleCardDelete}
+                 onClose={closeAllPopups}
+                 loggedIn={loggedIn}
+               />}
         />
         <Route path='/sign-in' element={<Login isLoading={isLoading} onSubmit={handleSignIn}/>}/>
         <Route path='/sign-up' element={<Register isLoading={isLoading} onSubmit={handleSignUp}/>}/>

@@ -1,9 +1,9 @@
+import Popup from "./Popup";
+
 function PopupWithForm({name, title, buttonText, isOpen, isLoading, isValid, onClose, onSubmit, children}) {
 
   return (
-    <div className={`popup${isOpen ? ' popup_opened': ''}`} onMouseDown={onClose}>
-      <div className="popup__container" onMouseDown={(evt) => evt.stopPropagation()}>
-        <button className="popup__close-button" type="button" onClick={onClose}/>
+    <Popup isOpen={isOpen} onClose={onClose} >
         <h2 className="popup__title">{title}</h2>
         <form className={`form form_type_${name}`} name={name} onSubmit={onSubmit}>
           {children}
@@ -14,8 +14,7 @@ function PopupWithForm({name, title, buttonText, isOpen, isLoading, isValid, onC
             }
           </button>
         </form>
-      </div>
-    </div>
+    </Popup>
   )
 }
 
